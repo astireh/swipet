@@ -10,16 +10,6 @@ start.bat   запуск бэкенда и фронтенда одной ком�
 reset_db.bat  пересоздать тестовую базу
 ```
 
-## Команда
-
-| Участник | Роль |
-|---|---|
-| [Astireh](https://github.com/astireh) | ИИ-рекомендации (ruBERT, GigaChat), интеграция бэкенда и фронтенда |
-| Мария Филичкина | база данных, чат |
-| [Chiric228](https://github.com/Chiric228) | бэкенд API |
-| [Валерия Пономарева](https://github.com/ValeriaRIRI) | фронтенд |
-| [Owolon](https://github.com/Owolon) | дизайн |
-
 ## Что нужно на компьютере
 
 - **Python 3.11–3.13** (python.org, при установке галочка «Add python.exe to PATH»)
