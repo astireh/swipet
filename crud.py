@@ -11,7 +11,7 @@ def create_user(db: Session, name: str, password: str, email: str, phone: str):
         db.commit()
     except IntegrityError:
         db.rollback()
-        raise ValueError('Пользователя с таким email или телефоном не существует')
+        raise ValueError('Пользователя с таким email или телефоном уже существует')
     db.refresh(user)
     return user
 

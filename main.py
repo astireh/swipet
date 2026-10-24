@@ -1,18 +1,21 @@
+import os
+from contextlib import asynccontextmanager
 from typing import Optional
 
 import bcrypt
 import uuid
-from fastapi import FastAPI, Depends, Header, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 import crud
-from database import SessionLocal, engine, Base
-from models import User, Seller, Pet, Swipe, Chat
+import reco_api                                   # [RECO] лента, свайпы, GigaChat, подписка
+from deps import get_db, get_current_user         # [RECO] перенесено из main.py в deps.py
+from models import User, Seller, Pet, Chat
 
-# Создаём таблицы в PostgreSQL, если их ещё нет
-Base.metadata.create_all(bind=engine)
+# [RECO] Создаём все таблицы (и команды, и рекомендаций) + колонку pets.description
+reco_api.init_schema()
 
 
 # --- СХЕМЫ ЗАПРОСОВ ---
@@ -36,11 +39,7 @@ class CreateAnimalRequest(BaseModel):
     price: float = 0.0
     breed: Optional[str] = None
     age_in_months: Optional[int] = None
-    description: Optional[str] = None   # в модели Pet нет такого поля (см. примечание)
-
-
-class SwipeRequest(BaseModel):
-    direction: str                  # left / right
+    description: Optional[str] = None   # [RECO] теперь сохраняется в pets.description
 
 
 class MessageRequest(BaseModel):
@@ -48,22 +47,24 @@ class MessageRequest(BaseModel):
 
 
 # --- ПРИЛОЖЕНИЕ ---
-app = FastAPI(title="petomnik API", version="1.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    reco_api.warmup()               # [RECO] загрузить ruBERT при старте, а не на первом запросе
+    yield
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+app = FastAPI(title="petomnik API", version="1.0", lifespan=lifespan)
 
+# [RECO] Разрешаем фронтенду (React на другом порту) обращаться к API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173").split(","),
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-def get_current_user(x_user_id: int = Header(...), db: Session = Depends(get_db)) -> User:
-    user = crud.get_user_by_id(db, x_user_id)
-    if user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
+app.include_router(reco_api.router)  # [RECO] /feed, /feed/{id}/swipe, /feed/{id}/why, /me/prefs, /me/subscription
 
 
 def get_or_create_seller(db: Session, user: User) -> Seller:
@@ -74,6 +75,9 @@ def get_or_create_seller(db: Session, user: User) -> Seller:
     if seller is None:
         seller = crud.create_seller(db, 'individual', user_id=user.id,
                                     name=user.name, email=user.email, phone=user.phone)
+    if not seller.city and user.city:   # [RECO] без города не работает совпадение «из вашего города»
+        seller.city = user.city
+        db.commit()
     return seller
 
 
@@ -88,6 +92,7 @@ def pet_to_dict(pet: Pet) -> dict:
         "price": pet.price,
         "is_free": not pet.price,
         "age_in_months": pet.age_in_months,
+        "description": pet.description,   # [RECO]
         "status": pet.publication_status,
         "created_at": pet.publication_date,
     }
@@ -145,7 +150,11 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
 @app.post("/api/v1/auth/login")
 def login(req: LoginRequest, db: Session = Depends(get_db)):
     user = crud.get_user_by_email(db, req.email)
-    if not user or not bcrypt.checkpw(req.password.encode("utf-8"), user.password.encode("utf-8")):
+    try:
+        ok = user is not None and bcrypt.checkpw(req.password.encode("utf-8"), user.password.encode("utf-8"))
+    except ValueError:          # [RECO] в базе не bcrypt-хеш (старые тестовые данные) - не падаем с 500
+        ok = False
+    if not ok:
         raise HTTPException(status_code=401, detail="Invalid credentials")
     return {"token": str(uuid.uuid4()), "userId": user.id, "displayName": user.name}
 
@@ -158,8 +167,8 @@ def get_profile(user: User = Depends(get_current_user)):
 
 # --- АНКЕТЫ ЖИВОТНЫХ ---
 @app.post("/api/v1/animals")
-def create_animal(req: CreateAnimalRequest, user: User = Depends(get_current_user),
-                  db: Session = Depends(get_db)):
+def create_animal(req: CreateAnimalRequest, background_tasks: BackgroundTasks,
+                  user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     seller = get_or_create_seller(db, user)
     price = 0.0 if req.is_free else req.price
     try:
@@ -168,6 +177,11 @@ def create_animal(req: CreateAnimalRequest, user: User = Depends(get_current_use
                               age_in_months=req.age_in_months)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    if req.description:                     # [RECO] сохраняем описание: по нему считается вектор
+        pet.description = req.description
+        db.commit()
+        db.refresh(pet)
+    background_tasks.add_task(reco_api.refresh_vectors_background)   # [RECO] вектор ruBERT в фоне
     return pet_to_dict(pet)
 
 
@@ -187,42 +201,7 @@ def change_animal_status(animal_id: int, status: str, user: User = Depends(get_c
 
 
 # --- ЛЕНТА И СВАЙПЫ ---
-@app.get("/api/v1/feed")
-def get_feed(category: Optional[str] = None, free: Optional[bool] = None,
-             user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    swiped = db.query(Swipe.pet_id).filter(Swipe.user_id == user.id)
-
-    query = (db.query(Pet)
-             .join(Seller, Pet.seller_id == Seller.id)
-             .filter(Pet.publication_status == "active",
-                     ~Pet.id.in_(swiped),
-                     or_(Seller.user_id.is_(None), Seller.user_id != user.id)))
-    if category:
-        query = query.filter(Pet.pet_type == category)
-    if free is True:
-        query = query.filter(Pet.price == 0)
-    elif free is False:
-        query = query.filter(Pet.price > 0)
-
-    pets = query.order_by(Pet.publication_date.desc()).limit(10).all()
-    return [pet_to_dict(p) for p in pets]
-
-
-@app.post("/api/v1/feed/{animal_id}/swipe")
-def swipe(animal_id: int, req: SwipeRequest, user: User = Depends(get_current_user),
-          db: Session = Depends(get_db)):
-    pet = crud.get_pet_by_id(db, animal_id)
-    if pet is None:
-        raise HTTPException(status_code=404, detail="Animal not found")
-    if pet.seller.user_id == user.id:
-        raise HTTPException(status_code=400, detail="Нельзя свайпать собственную анкету")
-
-    try:
-        swipe_obj, chat = crud.create_swipe(db, user.id, animal_id, req.direction)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-    return {"status": "ok", "swipe_id": swipe_obj.id, "chat_id": chat.id if chat else None}
+# [RECO] /api/v1/feed и /api/v1/feed/{id}/swipe перенесены в reco_api.py
 
 
 # --- ЧАТЫ И СООБЩЕНИЯ ---

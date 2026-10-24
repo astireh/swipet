@@ -50,6 +50,7 @@ class Pet(Base):
     age_in_months = Column(Integer)
     color = Column(String)
     weight = Column(Float)
+    description = Column(Text)  # описание от продавца: по нему считается вектор ruBERT
     vaccinations = Column(Boolean, default=False)
     documents = Column(Boolean, default=False)
     publication_status = Column(String, default='active') #, index=True)
