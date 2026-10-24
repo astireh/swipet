@@ -1,16 +1,34 @@
-# React + Vite
+# SWIPET — фронтенд
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + Vite. Все данные приходят с бэкенда (FastAPI): регистрация, вход, лента с ИИ-рекомендациями,
+объяснение карточки от GigaChat, лайки, чаты, объявления с фото, подписка.
 
-Currently, two official plugins are available:
+Бэкенд: https://github.com/victoriakovalyova/6ix7even_2026 (ветка `main`).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Запуск
 
-## React Compiler
+1. Запустите бэкенд (в папке бэкенда, с активированным venv):
+   ```
+   uvicorn main:app --reload
+   ```
+   Он должен работать на http://127.0.0.1:8000.
+2. В папке фронтенда:
+   ```
+   npm install
+   npm run dev
+   ```
+3. Откройте http://localhost:5173
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Vite перенаправляет запросы `/api` и `/uploads` на бэкенд (`vite.config.js`), поэтому отдельные настройки не нужны.
+Если бэкенд на другом адресе: `BACKEND_URL=http://адрес:порт npm run dev`.
 
-## Expanding the ESLint configuration
+## Тестовые аккаунты (после `python seed.py` в бэкенде), пароль `demo1234`
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- `koshatnik@example.com` — покупатель, ищет спокойную кошку
+- `maria@example.com` — продавец Мурки, Барсика, Пушка (можно отвечать в чатах)
+
+## Где что в коде
+
+- `src/api.js` — все запросы к бэкенду и хранение токена входа
+- `src/App.jsx` — экраны: регистрация (с опросом для ИИ), вход, лента, «почему мне это показали», чаты, создание объявления, профиль
+- `vite.config.js` — перенаправление `/api` и `/uploads` на бэкенд
