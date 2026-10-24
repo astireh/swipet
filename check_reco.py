@@ -37,7 +37,9 @@ if with_desc < total:
 
 step("2. ruBERT")
 try:
-    print("Модель:", embedders.model_name(), "| пересчитано векторов:", reco_vectors.sync_pet_vectors(db))
+    print("Из vectors.json загружено:", reco_vectors.import_json(db))
+    pets_n, prefs_n = reco_vectors.sync_all(db)
+    print("Модель:", embedders.model_name(), f"| пересчитано: питомцев {pets_n}, опросов {prefs_n}")
     vectors = db.query(reco_vectors.PetVector).filter(
         reco_vectors.PetVector.model == embedders.model_name()).count()
     print(f"Векторов в базе: {vectors} из {total}")

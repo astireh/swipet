@@ -24,7 +24,7 @@ SCENARIOS = [
 
 
 def print_all_feeds():
-    print("Новых векторов:", reco_vectors.sync_pet_vectors(db))
+    print("Новых векторов (питомцы, опросы):", reco_vectors.sync_all(db))
     for uid, title in SCENARIOS:
         print(f"\n=== {title} ===")
         for i, item in enumerate(mon.build_feed(db, uid, limit=12, seed=1), 1):
@@ -102,7 +102,7 @@ def finish():
 
 
 print(f"Вы: {user.name} (id {user_id}), город {user.city}")
-print("Подготовка векторов, новых:", reco_vectors.sync_pet_vectors(db))
+print("Подготовка векторов, новых (питомцы, опросы):", reco_vectors.sync_all(db))
 show_status()
 
 seed = random.randint(1, 10**6)

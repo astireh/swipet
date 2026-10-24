@@ -20,6 +20,11 @@ _cache = {}         # модель с диска грузится один ра�
 _lock = threading.Lock()   # API работает в нескольких потоках: не грузим модель дважды
 
 
+def enabled():
+    """EMBED_ENABLED=0 в .env: нейросеть не загружается вообще, используются только готовые векторы."""
+    return os.getenv("EMBED_ENABLED", "1") == "1"
+
+
 def _current(backend):
     return backend or os.getenv("EMBED_BACKEND", DEFAULT_BACKEND)
 
@@ -52,6 +57,8 @@ def encode(texts, backend=None):
     """Список текстов -> матрица векторов (по строке на текст), длина каждого равна 1."""
     if not texts:
         return np.zeros((0, 0))
+    if not enabled():
+        raise RuntimeError("ruBERT выключен (EMBED_ENABLED=0)")
     import torch
     tokenizer, model = _load(_current(backend))
 

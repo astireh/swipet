@@ -1,8 +1,9 @@
 """Консольное демо всего пути пользователя через настоящее API.
 
 Как запустить:
-  терминал 1:  uvicorn main:app --reload
-  терминал 2:  python demo.py
+  python demo.py
+Если сервер не запущен, демо предложит запустить его прямо здесь (в этом же окне).
+Можно и по-старому: терминал 1 - uvicorn main:app --reload, терминал 2 - python demo.py
 
 Что можно сделать: регистрация или вход -> опрос (анкета) -> лента с лайками и пропусками ->
 «почему мне это показали» (GigaChat) -> чат с продавцом -> уведомления -> подписка.
@@ -11,7 +12,10 @@
 import json
 import os
 import sys
+import threading
+import time
 import urllib.error
+import urllib.parse
 import urllib.request
 
 API = os.getenv("API_URL", "http://127.0.0.1:8000/api/v1")
@@ -57,8 +61,36 @@ def api(method, path, body=None):
         raise ApiError(error.code, detail)
     except urllib.error.URLError:
         print(f"\nСервер не отвечает по адресу {API}.")
-        print("Запустите его в другом терминале:  uvicorn main:app --reload")
+        print("Перезапустите демо: python demo.py (оно предложит запустить сервер)")
         sys.exit(1)
+
+
+# ---------- Сервер ----------
+
+def server_alive():
+    base = API.split("/api/")[0]
+    try:
+        _opener.open(base + "/openapi.json", timeout=3)
+        return True
+    except Exception:
+        return False
+
+
+def start_local_server():
+    """Запускает API в этом же процессе, в фоновом потоке (как uvicorn main:app)."""
+    import uvicorn
+    print("Запускаю сервер...")
+    import main                                   # создаёт таблицы и приложение
+    port = urllib.parse.urlparse(API).port or 8000
+    server = uvicorn.Server(uvicorn.Config(main.app, host="127.0.0.1", port=port, log_level="warning"))
+    threading.Thread(target=server.run, daemon=True).start()
+    deadline = time.time() + 600
+    while not server.started:
+        if not threading.main_thread().is_alive() or time.time() > deadline:
+            print("Сервер не запустился. Попробуйте в отдельном окне: uvicorn main:app --reload")
+            sys.exit(1)
+        time.sleep(0.3)
+    print(f"Сервер работает. Пока открыто демо, Swagger доступен: http://127.0.0.1:{port}/docs")
 
 
 # ---------- Ввод ----------
@@ -334,6 +366,12 @@ def main_menu():
 
 def main():
     print("Petomnik: демо через API", API)
+    if not server_alive():
+        print("\nСервер не запущен.")
+        if choose("Запустить его прямо здесь?", [(1, "да"), (0, "нет, выйти")]) == "0":
+            print("Запустите в другом окне:  uvicorn main:app --reload  и снова  python demo.py")
+            return
+        start_local_server()
     while True:
         choice = choose("Добро пожаловать!", [(1, "регистрация"), (2, "вход"), (0, "выход")])
         if choice == "0":

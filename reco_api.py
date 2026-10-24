@@ -4,10 +4,11 @@
 Подключается в main.py одной строкой: app.include_router(reco_api.router)
 """
 import os
+import threading
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import inspect, text
 from sqlalchemy.orm import Session
@@ -37,31 +38,40 @@ def init_schema():
         print("[reco] В таблицу pets добавлена колонка description")
 
 
-def warmup():
-    """Загружает ruBERT и считает векторы питомцам, у которых их нет.
-    RECO_WARMUP=0 в .env отключает (например, если модель ещё не скачана)."""
-    if os.getenv("RECO_WARMUP", "1") != "1":
-        print("[reco] Прогрев отключён (RECO_WARMUP=0)")
-        return
-    db = SessionLocal()
-    try:
-        print("[reco] Загружаю модель", embedders.warmup(), "...")
-        print("[reco] Новых векторов питомцев:", reco_vectors.sync_pet_vectors(db))
-    except Exception as error:
-        print("[reco] ruBERT недоступен, лента работает только по правилам:", error)
-    finally:
-        db.close()
-
-
 def refresh_vectors_background():
-    """Для BackgroundTasks: пересчитать векторы после создания/изменения анкеты."""
+    """Досчитать недостающие векторы (питомцы и опросы).
+    Нейросеть загружается, только если действительно появился новый текст."""
     db = SessionLocal()
     try:
-        reco_vectors.sync_pet_vectors(db)
+        if reco_vectors.missing_count(db) == 0:
+            return
+        if not embedders.enabled():
+            print("[reco] Есть новые тексты без векторов, но ruBERT выключен (EMBED_ENABLED=0):"
+                  " они ранжируются по правилам. Запустите python build_vectors.py")
+            return
+        pets_n, prefs_n = reco_vectors.sync_all(db)
+        print(f"[reco] Посчитаны векторы: питомцев {pets_n}, опросов {prefs_n}")
     except Exception as error:
-        print("[reco] Не удалось посчитать вектор:", error)
+        print("[reco] Не удалось посчитать векторы:", error)
     finally:
         db.close()
+
+
+def warmup():
+    """При старте сервера: загрузить готовые векторы из vectors.json (без нейросети),
+    а недостающие досчитать В ФОНЕ. Сервер стартует сразу, лента работает сразу."""
+    db = SessionLocal()
+    try:
+        loaded = reco_vectors.import_json(db)
+        missing = reco_vectors.missing_count(db)
+        print(f"[reco] Векторов из vectors.json: {loaded}, не хватает: {missing}")
+    except Exception as error:
+        print("[reco] Не удалось прочитать готовые векторы:", error)
+        missing = 1
+    finally:
+        db.close()
+    if missing:
+        threading.Thread(target=refresh_vectors_background, daemon=True).start()
 
 
 # ---------- Карточка ленты ----------
@@ -162,7 +172,8 @@ def get_prefs(user: User = Depends(get_current_user), db: Session = Depends(get_
 
 
 @router.put("/me/prefs")
-def save_prefs(req: PrefsRequest, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def save_prefs(req: PrefsRequest, background_tasks: BackgroundTasks,
+               user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     if req.age_min is not None and req.age_max is not None and req.age_min > req.age_max:
         raise HTTPException(status_code=400, detail="age_min больше age_max")
     prefs = db.get(reco_feed.UserPrefs, user.id)
@@ -172,6 +183,7 @@ def save_prefs(req: PrefsRequest, user: User = Depends(get_current_user), db: Se
     for field, value in req.model_dump().items():
         setattr(prefs, field, value)
     db.commit()
+    background_tasks.add_task(refresh_vectors_background)   # вектор текста из опроса - в фоне
     return prefs_to_dict(prefs)
 
 

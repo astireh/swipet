@@ -72,7 +72,8 @@ def _vector_scores(db, user_id, candidate_ids, about):
     try:
         vec, basis = reco_vectors.user_vector(db, user_id), "likes"
         if vec is None and about:
-            vec, basis = reco_vectors.text_vector(about), "about"   # холодный старт: текст «о себе»
+            # холодный старт: готовый вектор текста из опроса (посчитан при сохранении анкеты)
+            vec, basis = reco_vectors.about_vector(db, user_id, about), "about"
         if vec is None:
             return {}, None
         return dict(reco_vectors.rank_pets_by_vector(db, vec, set(candidate_ids))), basis
