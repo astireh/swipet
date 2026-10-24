@@ -7,14 +7,16 @@
 ## Запуск (Windows, PowerShell)
 ```
 python -m venv venv
-venv\Scripts\activate
+.\venv\Scripts\Activate.ps1
 pip install torch --index-url https://download.pytorch.org/whl/cpu
 pip install -r requirements.txt
 copy .env.example .env          # затем вписать GIGACHAT_KEY
 python seed.py                  # тестовые данные
 python check_reco.py 4          # самопроверка: база, ruBERT, лента, GigaChat
 uvicorn main:app --reload       # API: http://127.0.0.1:8000/docs
+python demo.py                  # во втором терминале: весь путь пользователя через API
 ```
+Как всё устроено (ИИ, лента, чат, база): ARCHITECTURE.md
 При первом запуске модель ruBERT скачивается (около 1,7 ГБ). Тестовый пароль всех пользователей из seed: `demo1234`.
 `python seed.py reset` сбрасывает счётчики свайпов и премиум клиентов.
 
@@ -36,3 +38,4 @@ uvicorn main:app --reload       # API: http://127.0.0.1:8000/docs
 - `embedders.py`: текст в вектор; `monetization.py`: премиум, лимит свайпов, реклама
 - `deps.py`: `get_db` и `get_current_user` (общие для main.py и reco_api.py)
 - `seed.py`, `demo_data.py`: тестовые данные; `play_db.py`: консольная лента; `check_reco.py`: самопроверка
+- `demo.py`: консольное демо через API (регистрация, опрос, лента, GigaChat, чат, подписка)
