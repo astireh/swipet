@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 
 import crud
 import embedders
+import files_api
 import monetization as mon
 import reco_explain
 import reco_feed
@@ -29,13 +30,18 @@ router = APIRouter(prefix="/api/v1", tags=["Рекомендации"])
 # ---------- Запуск: таблицы и прогрев модели ----------
 
 def init_schema():
-    """Создаёт все таблицы (команды и наши) и добавляет pets.description в старые базы."""
+    """Создаёт все таблицы и добавляет новые колонки в старые базы."""
     Base.metadata.create_all(bind=engine)
-    columns = {c["name"] for c in inspect(engine).get_columns("pets")}
-    if "description" not in columns:
-        with engine.begin() as conn:
-            conn.execute(text("ALTER TABLE pets ADD COLUMN description TEXT"))
-        print("[reco] В таблицу pets добавлена колонка description")
+    # колонки, которых нет в базах, созданных старой версией кода
+    new_columns = {"pets": {"description": "TEXT"},
+                   "users": {"user_type": "VARCHAR", "goal": "VARCHAR"}}
+    for table, cols in new_columns.items():
+        existing = {c["name"] for c in inspect(engine).get_columns(table)}
+        for col, sql_type in cols.items():
+            if col not in existing:
+                with engine.begin() as conn:
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} {sql_type}"))
+                print(f"[reco] В таблицу {table} добавлена колонка {col}")
 
 
 def refresh_vectors_background():
@@ -76,7 +82,7 @@ def warmup():
 
 # ---------- Карточка ленты ----------
 
-def feed_card(item) -> dict:
+def feed_card(item, photos=None) -> dict:
     pet = item["pet"]
     return {
         "id": pet.id,
@@ -91,6 +97,8 @@ def feed_card(item) -> dict:
         "color": pet.color,
         "description": pet.description,
         "city": item["city"],
+        "seller_name": item.get("seller_name"),
+        "photo_url": (photos or {}).get(pet.id),
         "status": pet.publication_status,
         "created_at": pet.publication_date,
         # данные рекомендаций
@@ -111,7 +119,8 @@ def get_feed(limit: int = Query(10, ge=1, le=50),
     """Персональная лента: ruBERT + анкета + лайки, каждая 5-я карточка случайная, каждая 6-я реклама."""
     items = mon.build_feed(db, user.id, limit=limit, category=category, free=free)
     reco_explain.remember_feed(db, user.id, items)
-    return [feed_card(it) for it in items]
+    photos = files_api.pet_photos(db, [it["id"] for it in items])
+    return [feed_card(it, photos) for it in items]
 
 
 class SwipeRequest(BaseModel):

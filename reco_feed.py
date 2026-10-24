@@ -148,7 +148,7 @@ def get_feed(db, user_id, limit=10, explore_every=EXPLORE_EVERY, seed=None):
             else:
                 reasons.append("описание похоже на питомцев, которых вы лайкали")
 
-        items.append({"id": pet.id, "pet": pet, "city": seller.city,
+        items.append({"id": pet.id, "pet": pet, "city": seller.city, "seller_name": seller.name,
                       "score": round(anketa + bonus + vec_points, 1),
                       "source": "рекомендация", "reasons": reasons})
     items.sort(key=lambda it: it["score"], reverse=True)

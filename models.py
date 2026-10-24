@@ -15,6 +15,8 @@ class User(Base):
     city = Column(String)
     account_status = Column(String, default='active')
     date_creation = Column(DateTime, default=datetime.now)
+    user_type = Column(String, default='fiz')   # fiz / ip / yur - тип пользователя при регистрации
+    goal = Column(String, default='find')       # find - ищет питомца, breed - разводит и продаёт
     #Связи
     sellers = relationship('Seller', back_populates='user', cascade="all, delete")
     swipes = relationship('Swipe', back_populates='user', cascade="all, delete")

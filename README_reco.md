@@ -17,7 +17,10 @@ python check_reco.py 4          # самопроверка: база, ruBERT, л
 uvicorn main:app --reload       # API: http://127.0.0.1:8000/docs
 python demo.py                  # во втором терминале: весь путь пользователя через API
 ```
-Как всё устроено (ИИ, лента, чат, база): ARCHITECTURE.md
+Фронтенд (React): https://github.com/ValeriaRIRI/pets — при запущенном бэкенде: `npm install`, `npm run dev`, открыть http://localhost:5173.
+Фронтенд входит по токену (`Authorization: Bearer`), Swagger и demo.py — по заголовку `X-User-Id`.
+
+Как всё устроено (ИИ, лента, чат, база, фото, вход): ARCHITECTURE.md
 При первом запуске build_vectors.py модель ruBERT скачивается (около 1,7 ГБ). Сервер модель при старте не грузит: берёт готовые векторы из vectors.json, недостающие досчитывает в фоне. EMBED_ENABLED=0 в .env отключает модель совсем. Тестовый пароль всех пользователей из seed: `demo1234`.
 `python seed.py reset` сбрасывает счётчики свайпов и премиум клиентов.
 
