@@ -3,6 +3,10 @@ import os
 import sys
 from datetime import date, datetime
 
+import mimetypes
+import shutil
+import uuid
+
 import bcrypt
 from sqlalchemy import text
 
@@ -133,6 +137,42 @@ def fix_sequences(db):
     db.commit()
 
 
+PHOTOS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seed_photos")
+PHOTO_EXT = (".jpg", ".jpeg", ".png", ".webp")
+
+
+def attach_photos(db):
+    """Прикрепляет фото из seed_photos/<номер питомца>.jpg к питомцам, у которых фото ещё нет.
+    Фото копируются в uploads/ и записываются в таблицу files, как при обычной загрузке.
+    Скачать фото: python download_photos.py"""
+    from files_api import UPLOAD_DIR, UPLOAD_URL, FileRecord
+    if not os.path.isdir(PHOTOS_DIR):
+        return
+    count = 0
+    for name in sorted(os.listdir(PHOTOS_DIR)):
+        stem, ext = os.path.splitext(name)
+        pet_id = stem.split("_")[0]
+        if ext.lower() not in PHOTO_EXT or not pet_id.isdigit():
+            continue
+        pet = db.get(models.Pet, int(pet_id))
+        if pet is None or db.query(FileRecord).filter(FileRecord.pet_id == pet.id).first():
+            continue
+        new_ext = ".jpg" if ext.lower() == ".jpeg" else ext.lower()
+        new_name = uuid.uuid4().hex + new_ext
+        source = os.path.join(PHOTOS_DIR, name)
+        shutil.copyfile(source, os.path.join(UPLOAD_DIR, new_name))
+        db.add(FileRecord(owner_user_id=pet.seller.user_id if pet.seller else None, pet_id=pet.id,
+                          filename=name, content_type=mimetypes.guess_type(name)[0] or "image/jpeg",
+                          size=os.path.getsize(source), url=f"{UPLOAD_URL}/{new_name}"))
+        count += 1
+    db.commit()
+    total = sum(1 for n in os.listdir(PHOTOS_DIR) if n.lower().endswith(PHOTO_EXT))
+    if total == 0:
+        print("Фото питомцев нет: запустите  python download_photos.py  и снова  python seed.py")
+    else:
+        print("Фото прикреплено к питомцам:", count)
+
+
 def setup_premium(db):
     """Питомник (продавец 2) оформляет премиум: его питомцы продвигаются."""
     if not mon.is_premium(db, "seller", 2):
@@ -160,6 +200,7 @@ if __name__ == "__main__":
         load_extra_data(db)
         fix_sequences(db)
         fill_descriptions(db)
+        attach_photos(db)
         set_demo_passwords(db)
         setup_premium(db)
     db.close()

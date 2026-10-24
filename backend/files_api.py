@@ -26,7 +26,7 @@ router = APIRouter(prefix="/api/v1", tags=["Файлы"])
 class FileRecord(Base):
     __tablename__ = "files"
     id = Column(Integer, primary_key=True, index=True)
-    owner_user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    owner_user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), index=True)   # пусто у тестовых фото из seed
     pet_id = Column(Integer, ForeignKey("pets.id", ondelete="CASCADE"), index=True)
     filename = Column(String, nullable=False)       # имя, под которым файл загрузили
     content_type = Column(String, nullable=False)   # image/jpeg ...

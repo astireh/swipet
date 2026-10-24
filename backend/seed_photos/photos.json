@@ -1,0 +1,221 @@
+{
+ "license": "Unsplash License: https://unsplash.com/license - бесплатно, в том числе в коммерческих проектах, указывать автора не обязательно",
+ "photos": [
+  {
+   "pet_id": 1,
+   "name": "Мурка",
+   "page": "https://unsplash.com/photos/a-gray-cat-sitting-on-top-of-a-blue-cushion-WI5OBsJoXEc",
+   "candidates": [
+    "1727683024583-c7ce0cf9e691",
+    "1570117268106-8e369647c733"
+   ]
+  },
+  {
+   "pet_id": 2,
+   "name": "Барсик",
+   "page": "https://unsplash.com/photos/long-fur-white-can-lying-on-white-stairs-tB4KJhciWxE",
+   "candidates": [
+    "1568470010257-111aa304d53b",
+    "1572590285030-0ae6a4715671"
+   ]
+  },
+  {
+   "pet_id": 3,
+   "name": "Луна",
+   "page": "https://unsplash.com/photos/black-cat-on-white-table-i_V3puSJ4W0",
+   "candidates": [
+    "1618189063538-57c32befeb38",
+    "1615159980312-6b44835f22a5"
+   ]
+  },
+  {
+   "pet_id": 4,
+   "name": "Лео",
+   "page": "https://unsplash.com/photos/fotografi-fokus-selektif-kucing-oranye-dan-putih-di-atas-meja-coklat-75715CVEJhI",
+   "candidates": [
+    "1573865526739-10659fec78a5",
+    "1569591159212-b02ea8a9f239"
+   ]
+  },
+  {
+   "pet_id": 5,
+   "name": "Рекс",
+   "page": "https://unsplash.com/photos/black-and-tan-german-shepherd-on-green-grass-field-during-daytime-9_Hy2wn5Gvo",
+   "candidates": [
+    "1598584062755-56912717e23f",
+    "page:2lVDdshknXI"
+   ]
+  },
+  {
+   "pet_id": 6,
+   "name": "Белла",
+   "page": "https://unsplash.com/photos/yellow-labrador-retriever-in-tilt-shift-lens-lYPzvaCXm-0",
+   "candidates": [
+    "1626808635723-081c7c579aa7",
+    "1627149400180-77f426f296cf"
+   ]
+  },
+  {
+   "pet_id": 7,
+   "name": "Пушок",
+   "page": "https://unsplash.com/photos/gray-russian-short-hair-kitten-with-collar-fREiGY_l2Ok",
+   "candidates": [
+    "1546180572-28e937c8128b",
+    "1489084917528-a57e68a79a1e"
+   ]
+  },
+  {
+   "pet_id": 8,
+   "name": "Симба",
+   "page": "https://unsplash.com/photos/kucing-tabby-oranye-di-lantai-abu-abu-zCFkafZ5tCQ",
+   "candidates": [
+    "1624477737871-2e6583e7deb0",
+    "1606213651356-0272cc0becd2"
+   ]
+  },
+  {
+   "pet_id": 9,
+   "name": "Дымка",
+   "page": "https://unsplash.com/photos/russian-blue-cat-on-white-table-7E9qvMOsZEM",
+   "candidates": [
+    "1492370284958-c20b15c692d2",
+    "1472053092455-ee16a8b358b9"
+   ]
+  },
+  {
+   "pet_id": 10,
+   "name": "Рыжик",
+   "page": "https://unsplash.com/photos/a-small-orange-kitten-sitting-on-the-floor-re6oXuTdMHQ",
+   "candidates": [
+    "1637424864218-b040b739ac44",
+    "page:02kGh5lGsb8"
+   ]
+  },
+  {
+   "pet_id": 11,
+   "name": "Тузик",
+   "page": "https://unsplash.com/photos/brown-long-coat-medium-dog-on-brown-field-during-daytime-Tx7cJ3t207k",
+   "candidates": [
+    "1602067340370-bdcebe8d1930",
+    "1621265845825-b261b2aa439f"
+   ]
+  },
+  {
+   "pet_id": 12,
+   "name": "Джесси",
+   "page": "https://unsplash.com/photos/tricolor-beagle-on-green-grass-during-daytime-w1WeR_HmMxw",
+   "candidates": [
+    "1631048905843-88f82fba8fd4",
+    "1512546321483-c0468b7b8a95"
+   ]
+  },
+  {
+   "pet_id": 13,
+   "name": "Чарли",
+   "page": "https://unsplash.com/photos/dachshund-resting-on-white-hanged-fabric-D1wiHCovGJ0",
+   "candidates": [
+    "1520087619250-584c0cbd35e8",
+    "1556796879-160fd67614ae"
+   ]
+  },
+  {
+   "pet_id": 14,
+   "name": "Альма",
+   "page": "https://unsplash.com/photos/white-and-black-siberian-husky-on-green-grass-field-during-daytime-t64RjBExKCQ",
+   "candidates": [
+    "1605568427561-40dd23c2acea",
+    "1590419690008-905895e8fe0d"
+   ]
+  },
+  {
+   "pet_id": 15,
+   "name": "Бусинка",
+   "page": "https://unsplash.com/photos/ein-kleiner-hamster-der-auf-einem-tisch-sitzt-cgnDJkzWkTg",
+   "candidates": [
+    "1721327900411-b315dce4388e",
+    "1778347088164-b60ccf347dce"
+   ]
+  },
+  {
+   "pet_id": 16,
+   "name": "Орешек",
+   "page": "https://unsplash.com/photos/selective-focus-photography-of-brown-hamster-adK3Vu70DEQ",
+   "candidates": [
+    "1425082661705-1834bfd09dca",
+    "1588331086909-9861b6e15a30"
+   ]
+  },
+  {
+   "pet_id": 17,
+   "name": "Кеша",
+   "page": "https://unsplash.com/photos/yellow-and-green-budgerigar-zOKrNguZwKo",
+   "candidates": [
+    "1560595643-90bb555b2eaa",
+    "1560813562-fd09315f5ce8"
+   ]
+  },
+  {
+   "pet_id": 18,
+   "name": "Рио",
+   "page": "https://unsplash.com/photos/a-white-cockatoo-with-a-yellow-crest-stands-on-grass-T3JiozZmoAE",
+   "candidates": [
+    "1759661659457-52060be3c1d1",
+    "1759661659497-88978a167f4b"
+   ]
+  },
+  {
+   "pet_id": 19,
+   "name": "Снежок",
+   "page": "https://unsplash.com/photos/white-rabbit-on-green-grass-u_kMWN-BWyU",
+   "candidates": [
+    "1585110396000-c9ffd4e4b308",
+    "1589933767411-38a58367efd7"
+   ]
+  },
+  {
+   "pet_id": 20,
+   "name": "Золотце",
+   "page": "https://unsplash.com/photos/un-pez-dorado-vibrante-nada-en-un-acuario-transparente-zxdn0PGevRo",
+   "candidates": [
+    "1785822387462-1b8dd36804be",
+    "1720001586147-0bfee9e5dba2"
+   ]
+  },
+  {
+   "pet_id": 21,
+   "name": "Неон",
+   "page": "https://unsplash.com/photos/red-and-silver-guppy-fish-tp5sz33nBcg",
+   "candidates": [
+    "1538719501547-bc023056a8b6",
+    "1544943910-4c1dc44aab44"
+   ]
+  },
+  {
+   "pet_id": 22,
+   "name": "Бурёнка",
+   "page": "https://unsplash.com/photos/white-and-black-cow-on-green-grass-field-during-daytime-K1hwkV5GPl0",
+   "candidates": [
+    "1594731884638-8197c3102d1d",
+    "1573731281021-d1cc573b3310"
+   ]
+  },
+  {
+   "pet_id": 23,
+   "name": "Мася",
+   "page": "https://unsplash.com/photos/white-and-gray-long-fur-cat-on-green-wooden-surface-7KBMD7FQTJI",
+   "candidates": [
+    "1620933288385-b2f6f1931d9e",
+    "1639732539374-504792a01850"
+   ]
+  },
+  {
+   "pet_id": 24,
+   "name": "Бася",
+   "page": "https://unsplash.com/photos/short-coated-brown-and-white-puppy-eoqnr8ikwFE",
+   "candidates": [
+    "1537151608828-ea2b11777ee8",
+    "1519098901909-b1553a1190af"
+   ]
+  }
+ ]
+}

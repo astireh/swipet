@@ -4,20 +4,22 @@
 и правилам (вид, город, возраст, лайки), объяснение «почему эта карточка» от GigaChat,
 лимит свайпов и рекламные слоты по подписке.
 
-## Запуск (Windows, PowerShell)
+## Запуск (Windows, PowerShell, из папки backend)
+Проще: `setup.bat` и `start.bat` в корне репозитория. Вручную:
 ```
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 pip install torch --index-url https://download.pytorch.org/whl/cpu
 pip install -r requirements.txt
 copy .env.example .env          # затем вписать GIGACHAT_KEY
-python seed.py                  # тестовые данные
+python download_photos.py       # фото питомцев в seed_photos/ (один раз)
+python seed.py                  # тестовые данные + фото
 python build_vectors.py         # векторы ruBERT -> база и vectors.json (после seed и новых питомцев)
 python check_reco.py 4          # самопроверка: база, ruBERT, лента, GigaChat
 uvicorn main:app --reload       # API: http://127.0.0.1:8000/docs
 python demo.py                  # во втором терминале: весь путь пользователя через API
 ```
-Фронтенд (React): https://github.com/ValeriaRIRI/pets — при запущенном бэкенде: `npm install`, `npm run dev`, открыть http://localhost:5173.
+Фронтенд (React) — папка `../frontend`: при запущенном бэкенде `npm install`, `npm run dev`, открыть http://localhost:5173.
 Фронтенд входит по токену (`Authorization: Bearer`), Swagger и demo.py — по заголовку `X-User-Id`.
 
 Как всё устроено (ИИ, лента, чат, база, фото, вход): ARCHITECTURE.md
