@@ -17,3 +17,16 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+/* Скрыть полосы прокрутки (ползунок справа). Прокрутка колесом, тачпадом и пальцем остаётся. */
+* {
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* старый Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Edge, Safari, Яндекс */
+}
